@@ -21,7 +21,9 @@ class CaptionDataset(Dataset):
         assert self.split in {'TRAIN', 'VAL', 'TEST'}
 
         # Open hdf5 file where images are stored
-        self.h = h5py.File(os.path.join(data_folder, self.split + '_IMAGES_' + data_name + '.hdf5'), 'r')
+        # self.h = h5py.File(os.path.join(data_folder, self.split + '_IMAGES_' + data_name + '.hdf5'), 'r')
+        # Open in memory for faster processing
+        self.h = h5py.File(os.path.join(data_folder, self.split + '_IMAGES_' + data_name + '.hdf5'), mode='r', driver='core')
         self.imgs = self.h['images']
 
         # Captions per image
