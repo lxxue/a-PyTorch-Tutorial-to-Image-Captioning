@@ -26,7 +26,7 @@ cudnn.benchmark = True  # set to true only if inputs to model are fixed size; ot
 start_epoch = 0
 epochs = 20  # number of epochs to train for (if early stopping is not triggered)
 epochs_since_improvement = 0  # keeps track of number of epochs since there's been an improvement in validation BLEU
-batch_size = 80
+batch_size = 32
 workers = 1  # for data-loading; right now, only 1 works with h5py
 encoder_lr = 1e-4  # learning rate for encoder if fine-tuning
 decoder_lr = 4e-4  # learning rate for decoder
@@ -57,6 +57,9 @@ def main():
     """
 
     global best_bleu4, epochs_since_improvement, checkpoint, start_epoch, fine_tune_encoder, data_name, word_map
+    global train_fname, model_fname, script_fname, log_dir
+    save_scripts(train_fname, model_fname, script_fname, log_dir)
+
 
     # Read word map
     word_map_file = os.path.join(data_folder, 'WORDMAP_' + data_name + '.json')
@@ -183,9 +186,11 @@ def train(train_loader, encoder, decoder, criterion, encoder_optimizer, decoder_
         # Forward prop.
         imgs = encoder(imgs)
         # multiple gpu: need to make sure scores and alphas are in the same shape
-        max_decode_lengths = max(caplens)-1
-        scores, caps_sorted, decode_lengths, alphas, sort_ind = decoder(imgs, caps, caplens, max_decode_lengths)
-        decode_lengths = decode_lengths.tolist()
+        # max_decode_lengths = max(caplens)-1
+        # scores, caps_sorted, decode_lengths, alphas, sort_ind = decoder(imgs, caps, caplens, max_decode_lengths)
+        scores, caps_sorted, decode_lengths, alphas, sort_ind = decoder(imgs, caps, caplens)
+
+        # decode_lengths = decode_lengths.tolist()
 
         # Since we decoded starting with <start>, the targets are all words after <start>, up to <end>
         targets = caps_sorted[:, 1:]
@@ -276,8 +281,9 @@ def validate(val_loader, encoder, decoder, criterion):
             if encoder is not None:
                 imgs = encoder(imgs)
             # multiple gpu: need to make sure scores and alphas are in the same shape
-            max_decode_lengths = max(caplens)-1
-            scores, caps_sorted, decode_lengths, alphas, sort_ind = decoder(imgs, caps, caplens, max_decode_lengths)
+            # max_decode_lengths = max(caplens)-1
+            # scores, caps_sorted, decode_lengths, alphas, sort_ind = decoder(imgs, caps, caplens, max_decode_lengths)
+            scores, caps_sorted, decode_lengths, alphas, sort_ind = decoder(imgs, caps, caplens)
 
             # Since we decoded starting with <start>, the targets are all words after <start>, up to <end>
             targets = caps_sorted[:, 1:]
