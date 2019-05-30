@@ -1,4 +1,5 @@
 import os
+import os.path as osp
 import numpy as np
 import h5py
 import json
@@ -205,7 +206,7 @@ def clip_gradient(optimizer, grad_clip):
                 param.grad.data.clamp_(-grad_clip, grad_clip)
 
 
-def save_checkpoint(data_name, epoch, epochs_since_improvement, encoder, decoder, encoder_optimizer, decoder_optimizer,
+def save_checkpoint(ckpt_dir, data_name, epoch, epochs_since_improvement, encoder, decoder, encoder_optimizer, decoder_optimizer,
                     bleu4, is_best):
     """
     Saves model checkpoint.
@@ -227,11 +228,13 @@ def save_checkpoint(data_name, epoch, epochs_since_improvement, encoder, decoder
              'decoder': decoder,
              'encoder_optimizer': encoder_optimizer,
              'decoder_optimizer': decoder_optimizer}
-    filename = 'checkpoint_' + data_name + '.pth.tar'
+    filename = osp.join(ckpt_dir, 'checkpoint_' + data_name + '.pth.tar')
+    best_filename = osp.join(ckpt_dir, 'BEST_checkpoint_' + data_name + '.pth.tar')
+
     torch.save(state, filename)
     # If this checkpoint is the best so far, store a copy so it doesn't get overwritten by a worse checkpoint
     if is_best:
-        torch.save(state, 'BEST_' + filename)
+        torch.save(state, best_filename)
 
 
 class AverageMeter(object):
